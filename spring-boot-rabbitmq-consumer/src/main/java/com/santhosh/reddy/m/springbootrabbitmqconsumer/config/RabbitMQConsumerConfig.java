@@ -1,11 +1,9 @@
 package com.santhosh.reddy.m.springbootrabbitmqconsumer.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.amqp.core.AcknowledgeMode;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +24,18 @@ public class RabbitMQConsumerConfig {
 	
 	
 	@Bean
+	@Autowired
+	public SimpleMessageListenerContainer masterQueueListenerContainer(ConnectionFactory connection, RabbitMQConsumer listenerMaster) {
+		SimpleMessageListenerContainer factory = new SimpleMessageListenerContainer();
+//		factory.setConcurrentConsumers(10);
+		factory.setConnectionFactory(connection);
+		factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+		factory.setMessageListener(listenerMaster);
+		factory.setQueueNames(queueName);
+		return factory;
+	} 
+	
+	/*@Bean
 	Queue queue() {
 		return new Queue(queueName,true);
 	}
@@ -52,7 +62,7 @@ public class RabbitMQConsumerConfig {
 		return new RabbitMQConsumer();
 	}
 	
-	/*public AmqpTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+	public AmqpTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
 		final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
 		rabbitTemplate.setMessageConverter(jsonMessageConvertor());
 		return rabbitTemplate;		
